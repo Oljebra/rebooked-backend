@@ -41,9 +41,13 @@ public class Book {
     @DBRef
     private List<File> images;
 
-//    private Integer stock = 1;
+    private Integer viewCount = 0;
+
     @DBRef
     private List<Category> categories;
+
+    @DBRef
+    private List<Tag> tags;
 
     private Constants.BookStatus status = Constants.BookStatus.ACTIVE;
 

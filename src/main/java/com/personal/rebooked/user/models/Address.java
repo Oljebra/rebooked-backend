@@ -17,10 +17,10 @@ public class Address {
     private String id;
     private String state;
     private String country;
-    private String formattedAddress;
+    // private String formattedAddress;
 
-    @GeoSpatialIndexed
-    private Point location;
+    // @GeoSpatialIndexed
+    // private Point location;
 
     @CreatedDate
     private LocalDateTime createdAt;

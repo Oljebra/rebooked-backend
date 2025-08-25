@@ -2,7 +2,9 @@ package com.personal.rebooked.book;
 
 import com.personal.rebooked.book.dto.*;
 import com.personal.rebooked.book.models.Book;
+import com.personal.rebooked.book.models.Tag;
 import com.personal.rebooked.book.repositories.BookRepository;
+import com.personal.rebooked.book.repositories.TagRepository;
 import com.personal.rebooked.category.CategoryService;
 import com.personal.rebooked.category.models.Category;
 import com.personal.rebooked.file.FileService;
@@ -24,8 +26,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,6 +43,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final FileService fileService;
     private final CategoryService categoryService;
+    private final TagRepository tagRepository;
     private final MongoTemplate mongoTemplate;
 
     public Book create(User user, CreateBookDto createBookDto) {
@@ -71,11 +72,20 @@ public class BookService {
             }
             book.getImages().add(file);
         }
+
+        for (String tagName : createBookDto.tagNames()) {
+            Tag tag = tagRepository.findOrCreate(tagName);
+            if (book.getTags() == null || book.getTags().isEmpty()) {
+                book.setTags(new ArrayList<>());
+            }
+            book.getTags().add(tag);
+        }
         return bookRepository.save(book);
     }
 
     public Book findById(String id) {
-        return bookRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
     }
 
     public List<Book> findAll(Constants.BookStatus status) {
@@ -88,7 +98,7 @@ public class BookService {
     public Book update(String id, UpdateBookDTO updateBookDto) {
         Book book = findById(id);
 
-        //Fetch the filelds
+        // Fetch the filelds
         Field[] dtoFields = UpdateBookDTO.class.getDeclaredFields();
         Field[] entityFields = Book.class.getDeclaredFields();
 
@@ -172,8 +182,7 @@ public class BookService {
         // Add match stage if there are any criteria
         if (!criteria.isEmpty()) {
             operations.add(Aggregation.match(
-                    new Criteria().andOperator(criteria.toArray(new Criteria[0]))
-            ));
+                    new Criteria().andOperator(criteria.toArray(new Criteria[0]))));
         }
 
         // 3. Count total documents for pagination
@@ -190,19 +199,17 @@ public class BookService {
         List<Book> books = mongoTemplate.aggregate(aggregation, "book", Book.class)
                 .getMappedResults();
 
-
         return new PageImpl<>(
                 books,
                 PageRequest.of(queryDTO.page(), queryDTO.pageSize()),
-                total
-        );
+                total);
     }
 
     public Book updateStatus(String id, UpdateBookStatusDTO updateBookStatusDTO) {
         Book book = findById(id);
-        if(updateBookStatusDTO.status() == Constants.BookStatus.SOLD) {
+        if (updateBookStatusDTO.status() == Constants.BookStatus.SOLD) {
             book.setSoldDate(new Date());
-        }else{
+        } else {
             book.setSoldDate(null);
         }
         book.setStatus(updateBookStatusDTO.status());
@@ -213,7 +220,8 @@ public class BookService {
         Date startDate = Misc.calculateStartDate(querySoldBooksDTO.timeQuery());
         Date endDate = new Date();
 
-        return bookRepository.findBySoldDateBetween(querySoldBooksDTO.userId(), startDate, endDate, Constants.BookStatus.SOLD);
+        return bookRepository.findBySoldDateBetween(querySoldBooksDTO.userId(), startDate, endDate,
+                Constants.BookStatus.SOLD);
     }
 
     public void delete(String id) {

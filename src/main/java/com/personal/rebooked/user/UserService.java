@@ -6,8 +6,10 @@ import com.personal.rebooked.service.MailService;
 import com.personal.rebooked.user.dto.CreateUserDto;
 import com.personal.rebooked.user.dto.UpdateProfileDTO;
 import com.personal.rebooked.user.dto.UpdateUserDTO;
+import com.personal.rebooked.user.models.Address;
 import com.personal.rebooked.user.models.Profile;
 import com.personal.rebooked.user.models.User;
+import com.personal.rebooked.user.repositories.AddressRepository;
 import com.personal.rebooked.user.repositories.ProfileRepository;
 import com.personal.rebooked.user.repositories.UserRepository;
 import com.personal.rebooked.user.role.RoleService;
@@ -28,10 +30,11 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
     private final RoleService roleService;
     private final MailService mailService;
-    private  final FileService fileService;
-    private  final ProfileRepository profileRepository;
+    private final FileService fileService;
+    private final ProfileRepository profileRepository;
 
     public User createUser(CreateUserDto createUserDto) {
         Role role = roleService.getRoleByName(createUserDto.roleName());
@@ -47,10 +50,10 @@ public class UserService {
         profile.setProfilePictureUrl(createUserDto.profilePictureUrl());
         Profile savedProfile = profileRepository.save(profile);
         user.setProfile(savedProfile);
-        return  userRepository.save(userWithEmail);
+        return userRepository.save(userWithEmail);
     }
 
-    public User createUserOauth(CreateUserDto createUserDto , Constants.RegistrationType registrationType) {
+    public User createUserOauth(CreateUserDto createUserDto, Constants.RegistrationType registrationType) {
         Role role = roleService.getRoleByName(createUserDto.roleName());
         User user = new User();
         user.setFullName(createUserDto.fullName());
@@ -64,11 +67,10 @@ public class UserService {
         profile.setProfilePictureUrl(createUserDto.profilePictureUrl());
         Profile savedProfile = profileRepository.save(profile);
         user.setProfile(savedProfile);
-        return  userRepository.save(user);
+        return userRepository.save(user);
     }
 
-
-    public User sendConfirmEmailToken ( User user) {
+    public User sendConfirmEmailToken(User user) {
         String confirmEmailToken = Misc.getToken();
         LocalDate dateAfter2weeks = LocalDate.now().plusWeeks(2);
         user.setConfirmEmailToken(confirmEmailToken);
@@ -77,18 +79,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User confirmEmail (User user, String token){
-        if(user.getConfirmEmailToken().equals(token) && user.getConfirmEmailTokenTTL().isAfter(LocalDate.now())){
+    public User confirmEmail(User user, String token) {
+        if (user.getConfirmEmailToken().equals(token) && user.getConfirmEmailTokenTTL().isAfter(LocalDate.now())) {
             user.setConfirmEmailToken(null);
             user.setConfirmEmailTokenTTL(null);
             user.setEmailVerified(true);
             return userRepository.save(user);
-        }else {
-            throw  new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token");
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token");
         }
     }
 
-    public User sendChangePasswordToken ( User user) {
+    public User sendChangePasswordToken(User user) {
         String changePasswordToken = Misc.getToken();
         LocalDate dateAfter2weeks = LocalDate.now().plusWeeks(2);
         user.setChangePasswordToken(changePasswordToken);
@@ -97,30 +99,30 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User changePassword (User user, String token, String password){
-        if(user.getChangePasswordToken().equals(token) && user.getChangePasswordTokenTTL().isAfter(LocalDate.now())){
+    public User changePassword(User user, String token, String password) {
+        if (user.getChangePasswordToken().equals(token) && user.getChangePasswordTokenTTL().isAfter(LocalDate.now())) {
             user.setChangePasswordToken(null);
             user.setChangePasswordTokenTTL(null);
             user.setPassword(password);
             return userRepository.save(user);
-        }else {
-            throw  new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token");
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid token");
         }
     }
 
     public User findUserById(String id) {
-        return  userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     public User findUserByEmail(String email) {
-        return  userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    public List<User> getAllUsers () {
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public  User updateUser( String userId, UpdateUserDTO updateUserDTO) {
+    public User updateUser(String userId, UpdateUserDTO updateUserDTO) {
         User user = findUserById(userId);
 
         Field[] dtoFields = UpdateUserDTO.class.getDeclaredFields();
@@ -138,31 +140,34 @@ public class UserService {
                         }
                     }
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
         return userRepository.save(user);
     }
 
-    public User updateUserProfile (String userId, UpdateProfileDTO updateProfileDTO) {
+    public User updateUserProfile(String userId, UpdateProfileDTO updateProfileDTO) {
         User user = findUserById(userId);
         Profile profile = user.getProfile();
         Field[] dtoFields = UpdateProfileDTO.class.getDeclaredFields();
         Field[] entityFields = Profile.class.getDeclaredFields();
-
+        Address address = new Address();
+        address.setCountry(updateProfileDTO.address().getCountry());
+        address.setState(updateProfileDTO.address().getState());
+        Address savedAddress = addressRepository.save(address);
         for (Field dtoField : dtoFields) {
             dtoField.setAccessible(true);
             try {
                 Object value = dtoField.get(updateProfileDTO);
-                if(dtoField.getName().equals("profilePictureId")) {
-                    if(value != null) {
+                if (dtoField.getName().equals("profilePictureId")) {
+                    if (value != null) {
                         File pictureFile = fileService.getFileById((String) value);
                         profile.setProfilePicture(pictureFile);
                         profile.setProfilePictureUrl(pictureFile.getUrl());
                     }
 
-                }else {
+                } else {
                     if (value != null) {
                         for (Field entityField : entityFields) {
                             if (entityField.getName().equals(dtoField.getName())) {
@@ -173,20 +178,20 @@ public class UserService {
                     }
                 }
 
-            }catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println(e.getStackTrace());
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             }
         }
-        System.out.println(profile);
-        Profile updatedprofile =  profileRepository.save(profile);
+        profile.setAddress(savedAddress);
+        Profile updatedprofile = profileRepository.save(profile);
         System.out.println(updatedprofile);
         user.setProfile(updatedprofile);
-       user.setOnboarded(true);
+        user.setOnboarded(true);
         return userRepository.save(user);
     }
 
-    public  void deleteUser(String userId) {
+    public void deleteUser(String userId) {
         User user = findUserById(userId);
         user.setDeleted(true);
         userRepository.save(user);

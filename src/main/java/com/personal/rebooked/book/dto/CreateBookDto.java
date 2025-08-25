@@ -1,18 +1,15 @@
 package com.personal.rebooked.book.dto;
 
-
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record CreateBookDto(
-        @NotNull
-        String title,
+        @NotNull String title,
 
         String author,
 
-        @NotNull
-        Double price,
+        @NotNull Double price,
 
         String description,
 
@@ -20,6 +17,9 @@ public record CreateBookDto(
 
         List<String> imageIds,
 
-        List<String> categoryIds
+        List<String> categoryIds,
+
+        List<String> tagNames
+
 ) {
 }
