@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Document
@@ -27,8 +28,8 @@ public class Category {
     private String imageUrl;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

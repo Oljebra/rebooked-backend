@@ -24,8 +24,8 @@ public class MarketingController {
     }
 
     @PostMapping("/test-ai")
-    public ResponseEntity<Object> testAIService(@RequestBody String prompt) {
-        String response = marketingService.testAIService(prompt);
+    public ResponseEntity<Object> testAIService(@RequestBody String prompt) throws Exception {
+        Object response = marketingService.testAIService(prompt);
         return ResponseHandler.generateResponse(response, "AI service response");
     }
 }

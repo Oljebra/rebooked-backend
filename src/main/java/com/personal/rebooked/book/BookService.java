@@ -1,5 +1,7 @@
 package com.personal.rebooked.book;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.personal.rebooked.book.dto.*;
 import com.personal.rebooked.book.models.Book;
 import com.personal.rebooked.book.models.Tag;
@@ -9,6 +11,8 @@ import com.personal.rebooked.category.CategoryService;
 import com.personal.rebooked.category.models.Category;
 import com.personal.rebooked.file.FileService;
 import com.personal.rebooked.file.models.File;
+import com.personal.rebooked.service.AiService;
+import com.personal.rebooked.service.RedisService;
 import com.personal.rebooked.user.models.User;
 import com.personal.rebooked.utils.Constants;
 import com.personal.rebooked.utils.Misc;
@@ -27,9 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,8 @@ public class BookService {
     private final CategoryService categoryService;
     private final TagRepository tagRepository;
     private final MongoTemplate mongoTemplate;
+    private final AiService aiService;
+    private final RedisService redisService;
 
     public Book create(User user, CreateBookDto createBookDto) {
         Book book = new Book();
@@ -223,6 +228,56 @@ public class BookService {
 
         return bookRepository.findBySoldDateBetween(querySoldBooksDTO.userId(), startDate, endDate,
                 Constants.BookStatus.SOLD);
+    }
+
+    public Book viewed(String id) {
+        Book book = findById(id);
+        book.setViewCount(book.getViewCount() + 1);
+        return bookRepository.save(book);
+    }
+
+    public List<Book> getAIRecommendedBooks() {
+        if(redisService.exists("ai_recommended_books")) {
+            return (List<Book>) redisService.get("ai_recommended_books");
+        }else {
+        try {
+            Random random = new Random();
+            Gson gson = new Gson();
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Book> books = findAll(Constants.BookStatus.ACTIVE);
+            Collections.shuffle(books, random);
+            books = books.subList(0, 50);
+
+            List<Map<String, String>> bookList = new ArrayList<>();
+            for (Book book : books) {
+                Map<String, String> bookMap = new HashMap<>();
+                bookMap.put("id", book.getId());
+                bookMap.put("title", book.getTitle());
+                bookMap.put("author", book.getAuthor());
+                bookMap.put("description", book.getDescription());
+                bookMap.put("viewCount", String.valueOf(book.getViewCount()));
+//            bookMap.put("tags", book.getTags().stream().map(t -> t.getName()).reduce((a, b) -> a + ", " + b).orElse(""));
+                bookMap.put("categories", book.getCategories().stream().map(Category::getName).reduce((a, b) -> a + ", " + b).orElse(""));
+                bookList.add(bookMap);
+            }
+            String booksJson = objectMapper.writeValueAsString(bookList);
+            String response =  aiService.suggestBooks(booksJson);
+            List<String> responseList = gson.fromJson(response, List.class);
+            List<Book> responseBooks = new ArrayList<>();
+            for (String bookId : responseList) {
+                responseBooks.add(findById(bookId));
+            }
+            redisService.save("ai_recommended_books", responseBooks, 7, TimeUnit.DAYS);
+            return responseBooks;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to fetch AI recommended books: " + e.getMessage());
+        }
+
+        }
+    }
+
+    public List<Book> getTopBooks() {
+        return bookRepository.findTop10ByStatusOrderByViewCountDesc(Constants.BookStatus.ACTIVE);
     }
 
     public void delete(String id) {

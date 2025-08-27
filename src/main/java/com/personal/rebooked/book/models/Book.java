@@ -54,8 +54,8 @@ public class Book {
     private Date soldDate;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

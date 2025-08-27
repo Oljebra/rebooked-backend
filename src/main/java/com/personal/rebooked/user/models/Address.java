@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Document
@@ -23,8 +24,8 @@ public class Address {
     // private Point location;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Document("role")
@@ -22,8 +23,8 @@ public class Role {
     private String description;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

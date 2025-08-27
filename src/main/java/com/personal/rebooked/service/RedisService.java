@@ -5,21 +5,36 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @RequiredArgsConstructor
 @Service
 public class RedisService {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public void save(String key, Object value) {
-        Gson gson = new Gson();
-        String json = gson.toJson(value);
-        redisTemplate.opsForValue().set(key, json);
+    // Save value with optional expiration
+    public void save(String key, Object value, long timeout, TimeUnit unit) {
+        redisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
+    // Save value without expiration
+    public void save(String key, Object value) {
+        redisTemplate.opsForValue().set(key, value);
+    }
+
+    // Retrieve value
     public Object get(String key) {
-        Gson gson = new Gson();
-        String result = redisTemplate.opsForValue().get(key);
-        return gson.fromJson(result, Object.class);
+        return redisTemplate.opsForValue().get(key);
+    }
+
+    // Delete key
+    public void delete(String key) {
+        redisTemplate.delete(key);
+    }
+
+    // Check if key exists
+    public boolean exists(String key) {
+        return redisTemplate.hasKey(key);
     }
 }

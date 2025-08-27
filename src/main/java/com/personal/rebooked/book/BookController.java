@@ -57,9 +57,27 @@ public class BookController {
         return ResponseHandler.generateResponse(books, "Books fetched successfully");
     }
 
+    @GetMapping("/ai-picks")
+    public ResponseEntity<Object> getAIPicks() {
+        List<Book> aiPicks = bookService.getAIRecommendedBooks();
+        return ResponseHandler.generateResponse(aiPicks, "AI Picks fetched successfully");
+    }
+
+    @GetMapping("/most-viewed")
+    public ResponseEntity<Object> getMostViewedBooks() {
+        List<Book> mostViewedBooks = bookService.getTopBooks();
+        return ResponseHandler.generateResponse(mostViewedBooks, "Most viewed books fetched successfully");
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<Object> updateBook(@PathVariable String id, @RequestBody @Valid UpdateBookDTO updateBookDTO) {
         Book book = bookService.update(id, updateBookDTO);
+        return ResponseHandler.generateResponse(book, "Book updated successfully");
+    }
+
+    @PatchMapping("/{bookId}/view")
+    public ResponseEntity<Object> viewBook(@PathVariable String bookId) {
+        Book book = bookService.viewed(bookId);
         return ResponseHandler.generateResponse(book, "Book updated successfully");
     }
 

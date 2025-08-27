@@ -21,4 +21,6 @@ public interface BookRepository extends MongoRepository<Book, String> {
             "{'status' :  ?3}" +
             "] }")
     List<Book> findBySoldDateBetween(String userId, Date startDate, Date endDate, Constants.BookStatus status);
+
+    List<Book> findTop10ByStatusOrderByViewCountDesc( Constants.BookStatus status);
 }

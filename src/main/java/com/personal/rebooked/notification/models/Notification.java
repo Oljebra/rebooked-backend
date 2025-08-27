@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Document
@@ -42,8 +43,8 @@ public class Notification {
     }
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 }

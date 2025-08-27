@@ -1,5 +1,6 @@
 package com.personal.rebooked.user.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.personal.rebooked.user.role.models.Role;
 import com.personal.rebooked.utils.Constants;
 import jakarta.validation.constraints.NotNull;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @Document("user")
 public class User implements UserDetails {
@@ -71,11 +73,12 @@ public class User implements UserDetails {
     private boolean isDeleted = false;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.getName()));
