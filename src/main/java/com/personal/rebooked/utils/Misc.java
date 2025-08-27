@@ -2,11 +2,10 @@ package com.personal.rebooked.utils;
 
 import java.security.SecureRandom;
 import java.text.DecimalFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class Misc {
 
@@ -75,5 +74,28 @@ public class Misc {
     public  static String generateUUID () {
         UUID uuid = UUID.randomUUID();
         return uuid.toString();
+    }
+
+
+    public static Double generateRandomPrice() {
+        Random random = new Random();
+        // Generate prices between $5.99 and $29.99
+        double price = 5.99 + (random.nextDouble() * 24.0);
+        return Math.round(price * 100.0) / 100.0; // Round to 2 decimal places
+    }
+
+    public static  <T> T getRandomElement(List<T> list) {
+        Random random = new Random();
+        return list.get(random.nextInt(list.size()));
+    }
+
+    public static List<String> getRandomIds(List<String> inputIds, int min, int max) {
+        Random random = new Random();
+        int count = random.nextInt(max - min + 1) + min;
+        List<String> shuffled = new ArrayList<>(inputIds);
+        Collections.shuffle(shuffled, random);
+        return shuffled.stream()
+                .limit(count)
+                .toList();
     }
 }

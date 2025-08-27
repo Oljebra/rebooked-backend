@@ -56,6 +56,10 @@ public class FileService {
         return fileRepository.save(fileData);
     }
 
+    public List<File> getAllFiles() {
+        return fileRepository.findAll();
+    }
+
     public void deleteFile(String fileId) {
         File file = getFileById(fileId);
         cloudinaryService.delete(file.getCloudinaryId());
