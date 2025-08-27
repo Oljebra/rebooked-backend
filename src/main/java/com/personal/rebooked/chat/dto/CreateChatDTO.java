@@ -1,10 +1,15 @@
 package com.personal.rebooked.chat.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record CreateChatDTO (
-        @NotNull  String sellerId,
-        @NotNull  String buyerId,
-        @NotNull  String bookId
+        @NotBlank String sellerId,
+        @NotBlank  String buyerName,
+        @NotBlank  String buyerEmail,
+        @NotBlank  String bookId,
+        Boolean signUpForNewsletter
 ){
+    public CreateChatDTO(String sellerId, String buyerId, String bookId) {
+        this(sellerId, buyerId, buyerId, bookId, false);
+    }
 }

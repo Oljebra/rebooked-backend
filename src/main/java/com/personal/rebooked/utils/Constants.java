@@ -124,7 +124,13 @@ public class Constants {
     }
 
     public enum ChatType {
-        BiLL,
+        REQUEST,
+        BID,
         MESSAGE
+    }
+
+    public enum NotificationMetaType {
+        NEW_MESSAGE,
+        BOOK_STATUS_CHANGED
     }
 }

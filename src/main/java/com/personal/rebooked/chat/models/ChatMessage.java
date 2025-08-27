@@ -11,16 +11,19 @@ import java.time.LocalDateTime;
 
 @Data
 @Document
-public class Message {
+public class ChatMessage {
 
     @Id
     private String id;
-    private  String senderId;
-    private String receiverId;
-    private String Message;
+    private String message;
+    private Float amount;
+
+    private String sender;
+
     private  Constants.ChatType chatType;
-    private boolean isDelivered;
-    private boolean isSeen;
+
+    private boolean isDelivered = false;
+    private boolean isSeen = false;
 
     @CreatedDate
     private LocalDateTime createdAt;

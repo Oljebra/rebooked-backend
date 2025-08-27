@@ -74,7 +74,8 @@ public class BookService {
         }
 
         for (String tagName : createBookDto.tagNames()) {
-            Tag tag = tagRepository.findOrCreate(tagName);
+            Tag tag = tagRepository.findByName(tagName)
+                    .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
             if (book.getTags() == null || book.getTags().isEmpty()) {
                 book.setTags(new ArrayList<>());
             }
